@@ -18,7 +18,7 @@ connectDB()
         })
     app.listen(process.env.PORT || 8000,()=>
     {
-        console.log(`Server is runinng at port:${process.nextTick.PORT}`)
+        console.log(`Server is runinng at port:${process.env.PORT}`)
     })
 })
 .catch((err)=>{
