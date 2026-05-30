@@ -55,3 +55,8 @@ are middlewares,Hooks allow functional components to use React features.
 ->in env accesstoken we wont save in database but refresh token we will save
 
 
+->FILE UPLOAD
+using multer/express fileupload and cloudinary 
+the strategy is to upload a file to our own server and then through our server we will upload to cloudinary (this two step is not necessary but it is a good practice )
+
+-> when routes in another file then we have to make use of the middle ware to use them 

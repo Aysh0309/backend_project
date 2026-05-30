@@ -30,4 +30,13 @@ Can handle nested objects.*/
 app.use(express.static("public"))
 //Makes files inside public folder accessible directly.
 app.use(cookieParser())
+
+//routes import
+import userRouter from './routes/user.routes.js'
+
+//routes declration
+app.use('/api/v1/users',userRouter)
+//http://loacalhost:8000/api/v1/users/register
+//this means when we go to /user the control will be passed to userROuter
+
 export { app }
