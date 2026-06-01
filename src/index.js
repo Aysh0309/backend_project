@@ -8,14 +8,15 @@ import { app } from "./app.js";
 dotenv.config({
     path:'./.env'
 })
+console.log(process.env.CLOUDINARY_CLOUD_NAME);
+console.log(process.env.CLOUDINARY_API_KEY);
+console.log(
+  process.env.CLOUDINARY_API_SECRET ? "Secret Loaded" : "Secret Missing"
+);
 
 //as await function returns a promise
 connectDB()
 .then(()=>{
-    app.on("error",(error)=>{
-            console.log("Error: ",error)
-            throw error
-        })
     app.listen(process.env.PORT || 8000,()=>
     {
         console.log(`Server is runinng at port:${process.env.PORT}`)

@@ -33,7 +33,7 @@ app.use(cookieParser())
 
 //routes import
 import userRouter from './routes/user.routes.js'
-
+console.log("USER ROUTES LOADED");
 //routes declration
 app.use('/api/v1/users',userRouter)
 //http://loacalhost:8000/api/v1/users/register
