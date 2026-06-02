@@ -3,7 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import jwt from "jsonwebtoken"
 import { User } from "../models/user.model.js";
-export const verifyJWT=asyncHandler(async(req,resizeBy,next)=>{
+export const verifyJWT=asyncHandler(async(req,res,next)=>{
     try {
         const token=req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ","")
         //in case cookies we dont have it case of mobile application so we use header 
