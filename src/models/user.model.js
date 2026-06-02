@@ -55,7 +55,7 @@ userSchema.pre('save',async function(){
    
 })
 
-//this pre is a hook using which we can perfom a task pre of any other funtion
+//this "pre" is a hook using which we can perfom a task pre of any other funtion
 //do not use arrow function as it does not have this function
 //save  the password only when the pass word is change 
 

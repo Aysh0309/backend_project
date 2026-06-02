@@ -54,7 +54,7 @@ const registerUser=asyncHandler(async (req,res)=>{
         const existedUser=await User.findOne({
             $or:[{username},{email}]
         })
-         console.log("3. User existence checked");//it will find the first user with this email or username 
+        //it will find the first user with this email or username 
         if(existedUser){
             throw new ApiError(409,'User with email or username already exists')
         }
@@ -63,13 +63,7 @@ const registerUser=asyncHandler(async (req,res)=>{
         const avatarLocalPath= req.files?.avatar[0]?.path;//taking the image from the multer 
       console.log("4. Avatar path:", avatarLocalPath);
         //short form of let avatarPath;
-// if (
-//     req.files &&
-//     req.files.avatar &&
-//     req.files.avatar[0]
-// ) {
-//     avatarPath = req.files.avatar[0].path;
-// }
+
        // const coverImageLocalPath=req.files?.coverImage?.[0]?.path;
        let coverImageLocalPath;
         if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length>0){
@@ -126,7 +120,7 @@ const loginUser = asyncHandler( async (req,res) => {
     //send cookie
 
     const {email,username,password}=req.body
-    if(!username || !email){
+    if(!(username || email)){
         throw new ApiError(400,'Username or email is required')
     }
 
@@ -152,7 +146,7 @@ const loginUser = asyncHandler( async (req,res) => {
         httpOnly:true,
         secure:true,
     }
-    //not modifiabl by frontend but canbe by sever
+    //not modifiabl by frontend but canbe by server
 
     return res.status(200).cookie("accessToken",accessToken,options)
     .cookie('refreshToken',refreshToken,options)
