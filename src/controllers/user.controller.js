@@ -5,6 +5,7 @@ import {uploadOnCloudinary} from '../utils/cloudinary.js'
 import {ApiResponse} from '../utils/ApiResponse.js'
 import { jwt } from 'jsonwebtoken'
 import { MongoCryptKMSRequestNetworkTimeoutError } from 'mongodb'
+import mongoose from 'mongoose'
 
 //method for generating access and refeshToken
 const generateAccessAndRefreshTokens=async(userId)=>{
@@ -255,7 +256,7 @@ const changeCurrentPassword=asyncHandler(async(req,res)=>{
 })
 
 const getCurrentUser=asyncHandler(async (req,res)=>{
-    return res.status(200).json(200,req.user,"Current user fetched succesfully")
+    return res.status(200).json(new ApiResponse(200,req.user,"Current user fetched succesfully"))
 })
 
 const updatAccountDetails =asyncHandler(async(req,res)=>{
@@ -303,7 +304,7 @@ const updatUserAvatar=asyncHandler(async(req,res)=>{
         {
             new:true,
         }
-    ).select("-isPasswordValid")
+    ).select("-Password")
 
     return res.status(200)
     .json(
@@ -331,7 +332,7 @@ const updatUserCoverImage=asyncHandler(async(req,res)=>{
         {
             new:true,
         }
-    ).select("-isPasswordValid")
+    ).select("-Password")
 
     return res.status(200)
     .json(
@@ -340,7 +341,147 @@ const updatUserCoverImage=asyncHandler(async(req,res)=>{
 })
 
 
+//here we will learn about aggregation pipeline
+const getUserChannelProfile=asyncHandler(async(req,res)=>{
+    const {username}=req.params 
+    //we use params when the data is part of the url
+
+    if(!username?.trim()){
+        throw new ApiError(400,"username is missing")
+    }
+
+    const channel=await User.aggregate([
+        //in this array we can multiple pipleline through which are output will be filtered
+        {
+            $match:{
+                username:username?.toLowerCase()
+            }
+        },
+        {
+            //here we find the number of subscriber of the id 
+            $lookup:{
+                from: "subscriptions",//as in DB model name get to lowecase and plural
+                localField: "_id",
+                foreignField: "channel",
+                as:"subscribers"
+            }
+
+        },
+        {
+            //here we find the number of subscriber channels of the user 
+             $lookup:{
+                from: "subscriptions",//as in DB model name get to lowecase and plural
+                localField: "_id",
+                foreignField: "subscriber",
+                as:"subscribedTo"
+            }
+        },
+        {
+            //these fields will added to the User model
+            $addFields:{
+                subscribersCount:{
+                    $size:"$subscribers"
+                },
+                channelsSubscribedToCount:{
+                    $size:"$subscribedTo"
+                },
+                isSubscribed:{
+                    $condition:{
+                        if:{$in:[req.user?._id,"$subscribers.subscriber"]},
+                        //in the "subscribers" ke andr "subscriber" me hona chiye
+                        then:true,
+                        else:false
+                    }
+                }
+
+            }
+        },
+        {
+            //project is used to pass only essential data rather than all the data
+            //After joining user data, $project removes sensitive fields before sending the response.
+            $project:{
+                fullname:1,
+                username:1,
+                subscribersCount:1,
+                channelsSubscribedToCount:1,
+                isSubscribed:1,
+                coverImage:1,
+                avatar:1,
+                email:1,
+            }
+        }
+    ])
+
+    if(!channel?.length){
+        throw new ApiError(404,"Channel does not exist ")
+    }
+    
+    return res.status(200)
+    .json(
+        new ApiResponse(200,channel[0],"User channel fetched successfully")
+    )
+})
+
+//aggregation return array of objects but can be tranformed to object 
+
+
+
+//here we will do nested look up
+const getWatchHistory=asyncHandler(async(req,res)=>{
+    const user=await User.aggregate([
+        {
+            $match:{
+               // _id:req.user._id
+               //the thing is this req.user._id actually is  a string which is converted automatically
+               //to the objtct id of mongodb by the mongoose 
+               //but aggregation pipeline are passsed directly to the mongodb hence we need to properly write the cod e
+               _id:new mongoose.Types.ObjectId(req.user._id)
+            },
+            
+            $lookup:{
+                from:"videos",
+                localField:"watchHistory",
+                foreignField:"_id",
+                as:"watchHistory",
+                pipeline:[
+                    {
+                        $lookup:{
+                            from:"users",
+                            localField:'owner',
+                            foreignField:"_id",
+                            as:"owner",
+                            pipeline:[
+                                {
+                                    $project:{
+                                        fullname:1,
+                                        username:1,
+                                        avatar:1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $addFields:{
+                            owner:{
+                                $first:"owner"
+                            }
+                        }
+                    }
+
+                ]
+            },
+
+        }
+    ])
+
+    return res.status(200).json(
+        new ApiResponse(200,user[0].watchHistory,"watch history fetchhed succesfully")
+    )
+})
+
+
 export {registerUser,
     loginUser,logoutUser,refreshAccessToken,changeCurrentPassword,getCurrentUser,updatAccountDetails
-    ,updatUserAvatar,updatUserCoverImage
+    ,updatUserAvatar,updatUserCoverImage,getUserChannelProfile,getWatchHistory
 }
