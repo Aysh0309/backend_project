@@ -3,10 +3,10 @@ import {ApiError} from "../utils/ApiError.js"
 import {User} from '../models/user.model.js'
 import {uploadOnCloudinary} from '../utils/cloudinary.js'
 import {ApiResponse} from '../utils/ApiResponse.js'
-import { jwt } from 'jsonwebtoken'
+import { verifyJWT } from '../middlewares/auth.middleware.js'
 import { MongoCryptKMSRequestNetworkTimeoutError } from 'mongodb'
 import mongoose from 'mongoose'
-
+import jwt from "jsonwebtoken";
 //method for generating access and refeshToken
 const generateAccessAndRefreshTokens=async(userId)=>{
     try {
@@ -171,8 +171,8 @@ const logoutUser=asyncHandler(async(req,res)=>{
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set:{
-                refreshToken:undefined
+            $unset:{
+                refreshToken:1//this removes the field from the document
             }
         },{
             new:true
