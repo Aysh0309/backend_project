@@ -36,6 +36,7 @@ import userRouter from './routes/user.routes.js'
 console.log("USER ROUTES LOADED");
 //routes declration
 app.use('/api/v1/users',userRouter)
+//This adds a base path to every route inside userRouter.
 //http://loacalhost:8000/api/v1/users/register
 //this means when we go to /user the control will be passed to userROuter
 
